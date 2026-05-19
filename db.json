@@ -1,0 +1,242 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@library.com",
+      "password": "$2a$10$SJz6E7piXMw2epvVPqGxyOs9BaA6Mc7wvQdZ6WAgSscRROGmwlWRS",
+      "name": "Library Admin",
+      "role": "admin",
+      "status": "active",
+      "phone": "0900000001",
+      "avatar": ""
+    },
+    {
+      "id": 2,
+      "email": "reader@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Nguyen Van Reader",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000002",
+      "avatar": ""
+    },
+    {
+      "id": 3,
+      "email": "locked@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Locked",
+      "role": "reader",
+      "status": "locked",
+      "phone": "0900000003",
+      "avatar": ""
+    },
+    {
+      "email": "cute73998@gmail.com",
+      "password": "$2a$10$6yHl1jHpzEGqW9NKaYMF1.sl8gtg/BmM6gazvgPL2MAZYhkhGZSOe",
+      "name": "21.Lê Hùng Cường",
+      "phone": "0967551345",
+      "role": "reader",
+      "status": "active",
+      "avatar": "",
+      "id": 4
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Lap trinh"
+    },
+    {
+      "id": 2,
+      "name": "Khoa hoc du lieu"
+    },
+    {
+      "id": 3,
+      "name": "Kinh te"
+    },
+    {
+      "id": 4,
+      "name": "Van hoc"
+    },
+    {
+      "id": 5,
+      "name": "Ky nang"
+    },
+    {
+      "name": "Toán học",
+      "id": 6
+    }
+  ],
+  "books": [
+    {
+      "id": 1,
+      "title": "React Can Ban",
+      "author": "Tran Minh",
+      "categoryId": 1,
+      "description": "Huong dan tung buoc xay dung ung dung React voi component, state, route va API.",
+      "totalCopies": 8,
+      "availableCopies": 6,
+      "shelfLocation": "A1-02",
+      "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80",
+      "status": "unavailable"
+    },
+    {
+      "id": 3,
+      "title": "Data Science Nhap Mon",
+      "author": "Le Hoang",
+      "categoryId": 2,
+      "description": "Tong quan ve phan tich du lieu, truc quan hoa va cac thuat toan co ban.",
+      "totalCopies": 6,
+      "availableCopies": 3,
+      "shelfLocation": "B1-04",
+      "coverImage": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80",
+      "status": "unavailable"
+    },
+    {
+      "id": 4,
+      "title": "Tu Duy Kinh Te Hoc",
+      "author": "Pham Anh",
+      "categoryId": 3,
+      "description": "Gioi thieu cach doc chi so, hieu dong tien va ra quyet dinh tai chinh co ban.",
+      "totalCopies": 4,
+      "availableCopies": 3,
+      "shelfLocation": "C3-07",
+      "coverImage": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=900&q=80",
+      "status": "unavailable"
+    },
+    {
+      "id": 5,
+      "title": "Nhung Ngay Tho Au",
+      "author": "Nguyen Nhat Anh",
+      "categoryId": 4,
+      "description": "Tap truyen nhe nhang ve ky uc, tinh ban va nhung dieu gian di trong doi song.",
+      "totalCopies": 7,
+      "availableCopies": 5,
+      "shelfLocation": "D2-10",
+      "coverImage": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80",
+      "status": "unavailable"
+    }
+  ],
+  "borrowings": [
+    {
+      "id": 1,
+      "userId": 2,
+      "bookId": 1,
+      "borrowDate": "2026-05-12",
+      "dueDate": "2026-05-26",
+      "returnDate": null,
+      "status": "borrowing",
+      "rejectReason": "",
+      "returnCondition": null,
+      "returnNote": ""
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "bookId": 3,
+      "borrowDate": "2026-05-01",
+      "dueDate": "2026-05-15",
+      "returnDate": null,
+      "status": "borrowing",
+      "rejectReason": "",
+      "returnCondition": null,
+      "returnNote": ""
+    },
+    {
+      "id": 3,
+      "userId": 2,
+      "bookId": 4,
+      "borrowDate": "2026-04-20",
+      "dueDate": "2026-05-04",
+      "returnDate": "2026-05-03",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "userId": 4,
+      "bookId": 1,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "rejected",
+      "rejectReason": "Phiếu đã bị từ chối.",
+      "returnCondition": null,
+      "returnNote": "",
+      "id": 4
+    },
+    {
+      "userId": 4,
+      "bookId": 1,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "rejected",
+      "rejectReason": "Phiếu đã bị từ chối.",
+      "returnCondition": null,
+      "returnNote": "",
+      "id": 5
+    },
+    {
+      "userId": 4,
+      "bookId": 1,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "rejected",
+      "rejectReason": "Phiếu đã bị từ chối.",
+      "returnCondition": null,
+      "returnNote": "",
+      "id": 6
+    },
+    {
+      "userId": 4,
+      "bookId": 1,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "rejected",
+      "rejectReason": "Phiếu đã bị từ chối.",
+      "returnCondition": null,
+      "returnNote": "",
+      "id": 7
+    },
+    {
+      "userId": 4,
+      "bookId": 3,
+      "borrowDate": "2026-05-19",
+      "dueDate": "2026-06-01",
+      "returnDate": null,
+      "status": "borrowing",
+      "rejectReason": "",
+      "returnCondition": null,
+      "returnNote": "",
+      "id": 8
+    },
+    {
+      "userId": 4,
+      "bookId": 1,
+      "borrowDate": "2026-05-19",
+      "dueDate": "2026-06-01",
+      "returnDate": "2026-05-19",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": "",
+      "id": 9
+    },
+    {
+      "userId": 4,
+      "bookId": 5,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "rejected",
+      "rejectReason": "Phiếu đã bị từ chối.",
+      "returnCondition": null,
+      "returnNote": "",
+      "id": 10
+    }
+  ]
+}
