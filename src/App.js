@@ -51,6 +51,7 @@ function App() {
                 <Route path="/admin/categories" element={<AdminCategoriesPage />} />
                 <Route path="/admin/users" element={<AdminUsersPage />} />
                 <Route path="/admin/borrowings" element={<AdminBorrowingsPage />} />
+                <Route path="/admin/overdue" element={<Navigate to="/admin/borrowings?status=overdue" replace />} />
               </Route>
             </Route>
 
