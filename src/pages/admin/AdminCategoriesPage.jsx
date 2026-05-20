@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorState, LoadingState } from '../../components/AsyncState';
 import { PageHeader } from '../../components/PageHeader';
+import { PaginationControls, usePagination } from '../../components/Pagination';
 import { useToast } from '../../context/ToastContext';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
@@ -63,6 +64,11 @@ export function AdminCategoriesPage() {
     await loadData();
   };
 
+  const categoryPagination = usePagination(categories, {
+    pageSize: 8,
+    resetKey: String(categories.length),
+  });
+
   if (loading) return <LoadingState />;
 
   return (
@@ -81,22 +87,25 @@ export function AdminCategoriesPage() {
         </div>
       </form>
       {categories.length === 0 ? <EmptyState title="Chưa có thể loại" description="Thêm thể loại đầu tiên để phân loại sách." /> : (
-        <div className="surface table-responsive">
-          <table className="table mb-0">
-            <thead><tr><th>Tên</th><th>Số sách</th><th className="text-end">Thao tác</th></tr></thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td className="fw-semibold">{category.name}</td>
-                  <td>{bookCountByCategory[category.id] || 0}</td>
-                  <td className="text-end">
-                    <button className="btn btn-outline-secondary btn-sm me-2" type="button" onClick={() => { setEditingId(category.id); setName(category.name); }}>Sửa</button>
-                    <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => remove(category)}>Xóa</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="surface">
+          <div className="table-responsive">
+            <table className="table mb-0">
+              <thead><tr><th>Tên</th><th>Số sách</th><th className="text-end">Thao tác</th></tr></thead>
+              <tbody>
+                {categoryPagination.pageItems.map((category) => (
+                  <tr key={category.id}>
+                    <td className="fw-semibold">{category.name}</td>
+                    <td>{bookCountByCategory[category.id] || 0}</td>
+                    <td className="text-end">
+                      <button className="btn btn-outline-secondary btn-sm me-2" type="button" onClick={() => { setEditingId(category.id); setName(category.name); }}>Sửa</button>
+                      <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => remove(category)}>Xóa</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <PaginationControls {...categoryPagination} />
         </div>
       )}
     </>

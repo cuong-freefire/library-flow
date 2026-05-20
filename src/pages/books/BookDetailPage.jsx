@@ -65,8 +65,16 @@ export function BookDetailPage() {
     ? borrowings.find((item) => String(item.userId) === String(user.id) && String(item.bookId) === String(book.id) && ['pending', 'borrowing'].includes(item.status))
     : null;
   const availability = getBookAvailability(book);
-  const isBorrowDisabled = !isBookBorrowable(book) || Boolean(activeBorrowing);
-  const borrowLabel = activeBorrowing?.status === 'pending' ? 'Đã đăng ký mượn' : activeBorrowing?.status === 'borrowing' ? 'Đang mượn sách này' : availability.borrowLabel;
+  const isBorrowDisabled = !isBookBorrowable(book) || Boolean(activeBorrowing) || (isAuthenticated && user?.role !== 'reader');
+  const borrowLabel = activeBorrowing?.status === 'pending'
+    ? 'Đã đăng ký mượn'
+    : activeBorrowing?.status === 'borrowing'
+      ? 'Đang mượn sách này'
+      : !isAuthenticated
+        ? 'Đăng nhập để mượn'
+        : user?.role !== 'reader'
+          ? 'Chỉ Reader được mượn'
+          : availability.borrowLabel;
 
   return (
     <section className="surface overflow-hidden">
@@ -85,9 +93,10 @@ export function BookDetailPage() {
           {error && <ErrorState message={error} />}
           <p className="my-4">{book.description}</p>
           <div className="row g-3 mb-4">
-            <div className="col-sm-4"><div className="metric"><div className="text-muted-2 small">Tổng bản</div><div className="h4 mb-0">{book.totalCopies}</div></div></div>
-            <div className="col-sm-4"><div className="metric"><div className="text-muted-2 small">Còn lại</div><div className="h4 mb-0">{book.availableCopies}</div></div></div>
-            <div className="col-sm-4"><div className="metric"><div className="text-muted-2 small">Kệ</div><div className="h4 mb-0">{book.shelfLocation}</div></div></div>
+            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Tổng bản</div><div className="h4 mb-0">{book.totalCopies}</div></div></div>
+            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Có thể mượn</div><div className="h4 mb-0">{book.availableCopies}</div></div></div>
+            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Hỏng/mất</div><div className="h4 mb-0">{(book.damagedCopies || 0) + (book.lostCopies || 0)}</div></div></div>
+            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Kệ</div><div className="h4 mb-0">{book.shelfLocation}</div></div></div>
           </div>
           <button className="btn btn-primary" type="button" disabled={isBorrowDisabled} onClick={requestBorrow}>
             {borrowLabel}

@@ -39,6 +39,86 @@
       "status": "active",
       "avatar": "",
       "id": 4
+    },
+    {
+      "id": 5,
+      "email": "reader5@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 05",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000005",
+      "avatar": ""
+    },
+    {
+      "id": 6,
+      "email": "reader6@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 06",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000006",
+      "avatar": ""
+    },
+    {
+      "id": 7,
+      "email": "reader7@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 07",
+      "role": "reader",
+      "status": "locked",
+      "phone": "0900000007",
+      "avatar": ""
+    },
+    {
+      "id": 8,
+      "email": "reader8@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 08",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000008",
+      "avatar": ""
+    },
+    {
+      "id": 9,
+      "email": "reader9@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 09",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000009",
+      "avatar": ""
+    },
+    {
+      "id": 10,
+      "email": "reader10@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 10",
+      "role": "reader",
+      "status": "locked",
+      "phone": "0900000010",
+      "avatar": ""
+    },
+    {
+      "id": 11,
+      "email": "reader11@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 11",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000011",
+      "avatar": ""
+    },
+    {
+      "id": 12,
+      "email": "reader12@library.com",
+      "password": "$2a$10$ef9.i/tqmKxcB3Sq570yVutm9sEjBtLZNWCSt0HttcbYBcmU9seGq",
+      "name": "Reader Demo 12",
+      "role": "reader",
+      "status": "active",
+      "phone": "0900000012",
+      "avatar": ""
     }
   ],
   "categories": [
@@ -65,6 +145,22 @@
     {
       "name": "Toán học",
       "id": 6
+    },
+    {
+      "id": 7,
+      "name": "Lich su"
+    },
+    {
+      "id": 8,
+      "name": "Tam ly"
+    },
+    {
+      "id": 9,
+      "name": "Ngoai ngu"
+    },
+    {
+      "id": 10,
+      "name": "Thieu nhi"
     }
   ],
   "books": [
@@ -75,10 +171,12 @@
       "categoryId": 1,
       "description": "Huong dan tung buoc xay dung ung dung React voi component, state, route va API.",
       "totalCopies": 8,
-      "availableCopies": 6,
+      "availableCopies": 5,
+      "damagedCopies": 1,
+      "lostCopies": 2,
       "shelfLocation": "A1-02",
       "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80",
-      "status": "unavailable"
+      "status": "available"
     },
     {
       "id": 3,
@@ -87,10 +185,12 @@
       "categoryId": 2,
       "description": "Tong quan ve phan tich du lieu, truc quan hoa va cac thuat toan co ban.",
       "totalCopies": 6,
-      "availableCopies": 3,
+      "availableCopies": 4,
+      "damagedCopies": 1,
+      "lostCopies": 1,
       "shelfLocation": "B1-04",
       "coverImage": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80",
-      "status": "unavailable"
+      "status": "available"
     },
     {
       "id": 4,
@@ -99,7 +199,9 @@
       "categoryId": 3,
       "description": "Gioi thieu cach doc chi so, hieu dong tien va ra quyet dinh tai chinh co ban.",
       "totalCopies": 4,
-      "availableCopies": 3,
+      "availableCopies": 4,
+      "damagedCopies": 0,
+      "lostCopies": 0,
       "shelfLocation": "C3-07",
       "coverImage": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=900&q=80",
       "status": "unavailable"
@@ -111,10 +213,124 @@
       "categoryId": 4,
       "description": "Tap truyen nhe nhang ve ky uc, tinh ban va nhung dieu gian di trong doi song.",
       "totalCopies": 7,
-      "availableCopies": 5,
+      "availableCopies": 7,
+      "damagedCopies": 0,
+      "lostCopies": 0,
       "shelfLocation": "D2-10",
       "coverImage": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80",
-      "status": "unavailable"
+      "status": "available"
+    },
+    {
+      "id": 6,
+      "title": "Clean Code Thuc Hanh",
+      "author": "Robert C. Martin",
+      "categoryId": 1,
+      "description": "Cac nguyen tac viet ma de doc, de bao tri va de mo rong.",
+      "totalCopies": 5,
+      "availableCopies": 5,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "A2-01",
+      "coverImage": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 7,
+      "title": "JavaScript Nang Cao",
+      "author": "Nguyen Bao",
+      "categoryId": 1,
+      "description": "Closure, async, module va cac pattern thuong dung trong JavaScript.",
+      "totalCopies": 3,
+      "availableCopies": 0,
+      "damagedCopies": 1,
+      "lostCopies": 2,
+      "shelfLocation": "A2-03",
+      "coverImage": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 8,
+      "title": "Python Cho Phan Tich Du Lieu",
+      "author": "Pham Minh",
+      "categoryId": 2,
+      "description": "Xu ly du lieu voi Python, pandas va truc quan hoa co ban.",
+      "totalCopies": 6,
+      "availableCopies": 6,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "B2-02",
+      "coverImage": "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 9,
+      "title": "Khoi Nghiep Tinh Gon",
+      "author": "Eric Ries",
+      "categoryId": 3,
+      "description": "Tu duy thu nghiem san pham va hoc tu phan hoi thi truong.",
+      "totalCopies": 4,
+      "availableCopies": 4,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "C1-05",
+      "coverImage": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 10,
+      "title": "Tam Ly Hoc Ung Dung",
+      "author": "Mai Anh",
+      "categoryId": 8,
+      "description": "Cac khai niem tam ly hoc co ban trong hoc tap va lam viec.",
+      "totalCopies": 5,
+      "availableCopies": 5,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "E1-01",
+      "coverImage": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 11,
+      "title": "English Grammar Notes",
+      "author": "Helen Brown",
+      "categoryId": 9,
+      "description": "Tong hop ngu phap tieng Anh theo chu de kem vi du ngan gon.",
+      "totalCopies": 7,
+      "availableCopies": 6,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "F1-04",
+      "coverImage": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 12,
+      "title": "Lich Su Viet Nam Tom Tat",
+      "author": "Hoang Nam",
+      "categoryId": 7,
+      "description": "Cac moc lich su quan trong duoc trinh bay ngan gon va de tra cuu.",
+      "totalCopies": 4,
+      "availableCopies": 4,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "G1-02",
+      "coverImage": "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
+    },
+    {
+      "id": 13,
+      "title": "Ke Chuyen Cho Be",
+      "author": "Lan Huong",
+      "categoryId": 10,
+      "description": "Tap truyen ngan cho thieu nhi voi ngon ngu de hieu.",
+      "totalCopies": 6,
+      "availableCopies": 6,
+      "damagedCopies": 0,
+      "lostCopies": 0,
+      "shelfLocation": "H1-01",
+      "coverImage": "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80",
+      "status": "available"
     }
   ],
   "borrowings": [
@@ -124,10 +340,10 @@
       "bookId": 1,
       "borrowDate": "2026-05-12",
       "dueDate": "2026-05-26",
-      "returnDate": null,
-      "status": "borrowing",
+      "returnDate": "2026-05-20",
+      "status": "returned",
       "rejectReason": "",
-      "returnCondition": null,
+      "returnCondition": "normal",
       "returnNote": ""
     },
     {
@@ -136,10 +352,10 @@
       "bookId": 3,
       "borrowDate": "2026-05-01",
       "dueDate": "2026-05-15",
-      "returnDate": null,
-      "status": "borrowing",
+      "returnDate": "2026-05-20",
+      "status": "returned",
       "rejectReason": "",
-      "returnCondition": null,
+      "returnCondition": "lost",
       "returnNote": ""
     },
     {
@@ -207,10 +423,10 @@
       "bookId": 3,
       "borrowDate": "2026-05-19",
       "dueDate": "2026-06-01",
-      "returnDate": null,
-      "status": "borrowing",
+      "returnDate": "2026-05-20",
+      "status": "returned",
       "rejectReason": "",
-      "returnCondition": null,
+      "returnCondition": "damaged",
       "returnNote": "",
       "id": 8
     },
@@ -237,6 +453,138 @@
       "returnCondition": null,
       "returnNote": "",
       "id": 10
+    },
+    {
+      "userId": 4,
+      "bookId": 1,
+      "borrowDate": "2026-05-20",
+      "dueDate": "2026-06-02",
+      "returnDate": "2026-05-20",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": "",
+      "id": 11
+    },
+    {
+      "id": 12,
+      "userId": 2,
+      "bookId": 5,
+      "borrowDate": "2026-05-02",
+      "dueDate": "2026-05-16",
+      "returnDate": "2026-05-15",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "id": 13,
+      "userId": 2,
+      "bookId": 6,
+      "borrowDate": "2026-05-03",
+      "dueDate": "2026-05-17",
+      "returnDate": "2026-05-17",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "id": 14,
+      "userId": 2,
+      "bookId": 8,
+      "borrowDate": "2026-05-04",
+      "dueDate": "2026-05-18",
+      "returnDate": "2026-05-18",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "id": 15,
+      "userId": 2,
+      "bookId": 9,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "rejected",
+      "rejectReason": "Khong du dieu kien muon.",
+      "returnCondition": null,
+      "returnNote": ""
+    },
+    {
+      "id": 16,
+      "userId": 2,
+      "bookId": 10,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "pending",
+      "rejectReason": "",
+      "returnCondition": null,
+      "returnNote": ""
+    },
+    {
+      "id": 17,
+      "userId": 2,
+      "bookId": 11,
+      "borrowDate": "2026-05-10",
+      "dueDate": "2026-05-24",
+      "returnDate": null,
+      "status": "borrowing",
+      "rejectReason": "",
+      "returnCondition": null,
+      "returnNote": ""
+    },
+    {
+      "id": 18,
+      "userId": 2,
+      "bookId": 12,
+      "borrowDate": "2026-05-11",
+      "dueDate": "2026-05-25",
+      "returnDate": "2026-05-20",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "id": 19,
+      "userId": 2,
+      "bookId": 13,
+      "borrowDate": "2026-04-28",
+      "dueDate": "2026-05-12",
+      "returnDate": "2026-05-12",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "id": 20,
+      "userId": 4,
+      "bookId": 6,
+      "borrowDate": "2026-05-06",
+      "dueDate": "2026-05-20",
+      "returnDate": "2026-05-19",
+      "status": "returned",
+      "rejectReason": "",
+      "returnCondition": "normal",
+      "returnNote": ""
+    },
+    {
+      "id": 21,
+      "userId": 4,
+      "bookId": 8,
+      "borrowDate": null,
+      "dueDate": null,
+      "returnDate": null,
+      "status": "pending",
+      "rejectReason": "",
+      "returnCondition": null,
+      "returnNote": ""
     }
   ]
 }

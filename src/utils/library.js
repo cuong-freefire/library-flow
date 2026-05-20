@@ -15,15 +15,11 @@ export const statusBadge = {
 export const bookStatusLabels = {
   available: 'Đang hiển thị',
   unavailable: 'Đã ẩn',
-  damaged: 'Hư hỏng',
-  lost: 'Thất lạc',
 };
 
 export const bookStatusBadge = {
   available: 'text-bg-success',
   unavailable: 'text-bg-secondary',
-  damaged: 'text-bg-warning',
-  lost: 'text-bg-danger',
 };
 
 export function categoryName(categories, categoryId) {

@@ -1,6 +1,25 @@
 import axiosApi from '../api/axios';
 import { addDays, todayIso } from '../utils/date';
 
+async function getBorrowedCount(bookId) {
+  const response = await axiosApi.get('/borrowings', {
+    params: {
+      bookId,
+      status: 'borrowing',
+    },
+  });
+  return response.data.length;
+}
+
+async function recalculateAvailableCopies(book) {
+  const borrowedCopies = await getBorrowedCount(book.id);
+  const availableCopies = Math.max(
+    0,
+    Number(book.totalCopies) - borrowedCopies - Number(book.damagedCopies || 0) - Number(book.lostCopies || 0)
+  );
+  await axiosApi.patch(`/books/${book.id}`, { availableCopies });
+}
+
 export const borrowingService = {
   async getAll() {
     const response = await axiosApi.get('/borrowings');
@@ -57,13 +76,12 @@ export const borrowingService = {
       throw new Error('Sách đã hết, phiếu đã được chuyển sang từ chối.');
     }
 
-    const nextAvailable = Number(book.availableCopies) - 1;
-    await axiosApi.patch(`/books/${book.id}`, { availableCopies: nextAvailable });
     const response = await axiosApi.patch(`/borrowings/${borrowing.id}`, {
       status: 'borrowing',
       borrowDate: todayIso(),
       dueDate: addDays(todayIso(), 14),
     });
+    await recalculateAvailableCopies(book);
     return response.data;
   },
 
@@ -73,10 +91,17 @@ export const borrowingService = {
     }
 
     const returnCondition = payload.returnCondition || 'normal';
-    if (returnCondition === 'normal') {
-      await axiosApi.patch(`/books/${book.id}`, {
-        availableCopies: Number(book.availableCopies) + 1,
+    let bookForRecalculation = book;
+    if (returnCondition === 'damaged') {
+      const updatedBook = await axiosApi.patch(`/books/${book.id}`, {
+        damagedCopies: Number(book.damagedCopies || 0) + 1,
       });
+      bookForRecalculation = updatedBook.data;
+    } else if (returnCondition === 'lost') {
+      const updatedBook = await axiosApi.patch(`/books/${book.id}`, {
+        lostCopies: Number(book.lostCopies || 0) + 1,
+      });
+      bookForRecalculation = updatedBook.data;
     }
 
     const response = await axiosApi.patch(`/borrowings/${borrowing.id}`, {
@@ -85,6 +110,7 @@ export const borrowingService = {
       returnCondition,
       returnNote: payload.returnNote || '',
     });
+    await recalculateAvailableCopies(bookForRecalculation);
     return response.data;
   },
 };

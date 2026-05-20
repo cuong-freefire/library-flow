@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorState, LoadingState } from '../../components/AsyncState';
 import { PageHeader } from '../../components/PageHeader';
+import { PaginationControls, usePagination } from '../../components/Pagination';
 import { userService } from '../../services/userService';
 
 export function AdminUsersPage() {
@@ -38,6 +39,11 @@ export function AdminUsersPage() {
     await loadData();
   };
 
+  const readerPagination = usePagination(readers, {
+    pageSize: 8,
+    resetKey: `${query}|${status}`,
+  });
+
   if (loading) return <LoadingState />;
 
   return (
@@ -57,25 +63,28 @@ export function AdminUsersPage() {
         </div>
       </div>
       {readers.length === 0 ? <EmptyState title="Không có reader" description="Không tìm thấy tài khoản phù hợp." /> : (
-        <div className="surface table-responsive">
-          <table className="table mb-0">
-            <thead><tr><th>Họ tên</th><th>Email</th><th>SĐT</th><th>Trạng thái</th><th className="text-end">Thao tác</th></tr></thead>
-            <tbody>
-              {readers.map((reader) => (
-                <tr key={reader.id}>
-                  <td className="fw-semibold">{reader.name}</td>
-                  <td>{reader.email}</td>
-                  <td>{reader.phone || '-'}</td>
-                  <td><span className={`badge ${reader.status === 'active' ? 'text-bg-success' : 'text-bg-danger'}`}>{reader.status}</span></td>
-                  <td className="text-end">
-                    <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => toggleStatus(reader)}>
-                      {reader.status === 'active' ? 'Khóa' : 'Mở khóa'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="surface">
+          <div className="table-responsive">
+            <table className="table mb-0">
+              <thead><tr><th>Họ tên</th><th>Email</th><th>SĐT</th><th>Trạng thái</th><th className="text-end">Thao tác</th></tr></thead>
+              <tbody>
+                {readerPagination.pageItems.map((reader) => (
+                  <tr key={reader.id}>
+                    <td className="fw-semibold">{reader.name}</td>
+                    <td>{reader.email}</td>
+                    <td>{reader.phone || '-'}</td>
+                    <td><span className={`badge ${reader.status === 'active' ? 'text-bg-success' : 'text-bg-danger'}`}>{reader.status}</span></td>
+                    <td className="text-end">
+                      <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => toggleStatus(reader)}>
+                        {reader.status === 'active' ? 'Khóa' : 'Mở khóa'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <PaginationControls {...readerPagination} />
         </div>
       )}
     </>
