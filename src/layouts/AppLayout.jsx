@@ -59,7 +59,7 @@ export function AppLayout() {
       </header>
       <main className="page-band">
         <div className="container">
-          <Outlet />
+          <Outlet />  
         </div>
       </main>
     </div>

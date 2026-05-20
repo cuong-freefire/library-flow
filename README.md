@@ -1,70 +1,105 @@
-# Getting Started with Create React App
+# Library Flow
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Library Flow là ứng dụng React quản lý mượn trả sách với hai vai trò chính:
 
-## Available Scripts
+- Reader: tra cứu sách, tạo phiếu mượn, xem lịch sử mượn trả.
+- Admin: quản lý sách, thể loại, reader và xử lý phiếu mượn trả.
 
-In the project directory, you can run:
+Backend trong môi trường học tập được mô phỏng bằng `json-server-auth` và dữ liệu nằm trong `db.json`.
 
-### `npm start`
+## Yêu Cầu
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Node.js
+- npm
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Cài Đặt
 
-### `npm test`
+```bash
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Chạy Dự Án
 
-### `npm run build`
+Chạy đồng thời API mock và React app:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm run dev
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Các service mặc định:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Frontend: `http://localhost:3000`
+- API mock: `http://localhost:5000`
 
-### `npm run eject`
+Biến môi trường API nằm trong `.env`:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```env
+REACT_APP_API_BASE_URL=http://localhost:5000
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Tài Khoản Seed
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Admin: `admin@library.com` / `Admin123`
+- Reader: `reader@library.com` / `Reader123`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Scripts
 
-## Learn More
+```bash
+npm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Chạy frontend React.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm run api
+```
 
-### Code Splitting
+Chạy API mock bằng `json-server-auth`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+npm run dev
+```
 
-### Analyzing the Bundle Size
+Chạy frontend và API mock cùng lúc.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```bash
+npm run build
+```
 
-### Making a Progressive Web App
+Build production vào thư mục `build`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Cấu Trúc Chính
 
-### Advanced Configuration
+```text
+src/
+  api/                 Cấu hình axios và interceptor token
+  components/          Component dùng lại nhiều nơi
+  context/             AuthContext, ToastContext
+  hooks/               Hook dùng chung
+  layouts/             Layout cho app chính và auth
+  pages/               Page theo domain/role
+    admin/
+      books/           Component và hook riêng cho quản lý sách
+      borrowings/      Component và hook riêng cho quản lý phiếu mượn
+    auth/
+    books/
+    reader/
+  routes/              Route guard
+  services/            Hàm gọi API theo resource
+  utils/               Helper định dạng, label, rule nhỏ
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Luồng Chính
 
-### Deployment
+1. `src/App.js` định nghĩa route và layout.
+2. `AuthProvider` giữ thông tin đăng nhập, token nằm trong `localStorage`.
+3. `services/*` gọi API qua `src/api/axios.js`.
+4. Page lấy dữ liệu qua service hoặc hook feature.
+5. Component con chỉ render form, filter, table hoặc trạng thái UI.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Ghi Chú Bảo Trì
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Giữ page ở vai trò điều phối, không nhồi toàn bộ form/filter/table vào cùng một file.
+- Với màn hình phức tạp, tạo thư mục feature con trong `pages/<domain>/`.
+- Logic gọi API đặt trong `services`, logic điều phối state của màn hình đặt trong custom hook.
+- Label/status dùng nhiều nơi nên gom vào `utils` hoặc constants thay vì viết lặp trong JSX.
