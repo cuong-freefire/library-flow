@@ -581,8 +581,8 @@
       "borrowDate": null,
       "dueDate": null,
       "returnDate": null,
-      "status": "pending",
-      "rejectReason": "",
+      "status": "rejected",
+      "rejectReason": "Phiếu không đủ điều kiện duyệt.",
       "returnCondition": null,
       "returnNote": ""
     }
