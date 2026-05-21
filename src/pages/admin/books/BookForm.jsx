@@ -55,13 +55,17 @@ export function BookForm({
           <label className="form-label fw-semibold">Vị trí kệ</label>
           <input className="form-control" value={form.shelfLocation} onChange={updateField('shelfLocation')} />
         </div>
-        <div className="col-md-2">
-          <label className="form-label fw-semibold">Trạng thái</label>
-          <select className="form-select" value={form.status} onChange={updateField('status')}>
-            <option value="available">Đang hiển thị</option>
-            <option value="unavailable">Đã ẩn</option>
-          </select>
-        </div>
+        {
+          editingId !== null ?? (
+            <div className="col-md-2">
+              <label className="form-label fw-semibold">Trạng thái</label>
+              <select className="form-select" value={form.status} onChange={updateField('status')}>
+                <option value="available">Đang hiển thị</option>
+                <option value="unavailable">Đã ẩn</option>
+              </select>
+            </div>
+          )
+        }
         <div className="col-12">
           <label className="form-label fw-semibold">Ảnh bìa URL</label>
           <input className="form-control" value={form.coverImage} onChange={updateField('coverImage')} />
