@@ -15,16 +15,17 @@ export function AdminBooksPage() {
     filteredBooks,
     filters,
     form,
+    getAvailableCount,
     getBorrowedCount,
     getPendingCount,
+    isSaving,
     loading,
     pagination,
+    processingBookId,
     query,
     resetForm,
     setFilters,
-    setForm,
     setQuery,
-    shelfOptions,
     submitBook,
     editBook,
     removeBook,
@@ -35,7 +36,7 @@ export function AdminBooksPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Admin" title="Quản lý sách" description="Thêm, sửa, xóa hoặc ẩn sách đã có lịch sử mượn trả." />
+      <PageHeader eyebrow="Admin" title="Quản lý sách" description="Thêm, sửa, ẩn hoặc hiện lại sách trong danh mục." />
       {error && <ErrorState message={error} />}
       <BookForm
         categories={categories}
@@ -43,8 +44,8 @@ export function AdminBooksPage() {
         form={form}
         getBorrowedCount={getBorrowedCount}
         getPendingCount={getPendingCount}
+        isSaving={isSaving}
         onCancel={resetForm}
-        onChange={setForm}
         onSubmit={submitBook}
       />
       <BookFilters
@@ -53,17 +54,18 @@ export function AdminBooksPage() {
         onFiltersChange={setFilters}
         onQueryChange={setQuery}
         query={query}
-        shelfOptions={shelfOptions}
       />
       {filteredBooks.length === 0 ? <EmptyState title="Không có sách" description="Thêm sách mới hoặc đổi từ khóa tìm kiếm." /> : (
         <BookTable
           categories={categories}
+          getAvailableCount={getAvailableCount}
           getBorrowedCount={getBorrowedCount}
           getPendingCount={getPendingCount}
           onEdit={editBook}
           onRemove={removeBook}
           onRestore={restoreBook}
           pagination={pagination}
+          processingBookId={processingBookId}
         />
       )}
     </>

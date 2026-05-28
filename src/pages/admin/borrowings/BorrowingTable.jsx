@@ -10,9 +10,13 @@ export function BorrowingTable({
   onReject,
   onReturn,
   pagination,
+  processingAction,
   books,
   users,
 }) {
+  const isProcessing = (item, action) => processingAction === `${action}:${item.id}`;
+  const isRowProcessing = (item) => Boolean(processingAction?.endsWith(`:${item.id}`));
+
   return (
     <div className="surface">
       <div className="table-responsive">
@@ -32,6 +36,7 @@ export function BorrowingTable({
           <tbody>
             {pagination.pageItems.map((item) => {
               const reader = getUser(item.userId);
+              const rowProcessing = isRowProcessing(item);
               return (
                 <tr key={item.id}>
                   <td>{userName(users, item.userId)}</td>
@@ -48,11 +53,21 @@ export function BorrowingTable({
                   <td>{formatDate(item.returnDate)}</td>
                   <td className="text-end">
                     <div className="btn-group btn-group-sm borrowing-action-group">
-                      <button className="btn btn-success" disabled={item.status !== 'pending'} onClick={() => onApprove(item)} type="button">Duyệt</button>
-                      <button className="btn btn-danger" disabled={item.status !== 'pending'} onClick={() => onReject(item)} type="button">Từ chối</button>
-                      <button className="btn btn-primary" disabled={item.status !== 'borrowing'} onClick={() => onReturn(item)} type="button">Đã trả</button>
-                      <button className="btn btn-warning" disabled={item.status !== 'borrowing'} onClick={() => onReturn(item, { returnCondition: 'damaged' })} type="button">Hỏng</button>
-                      <button className="btn btn-dark" disabled={item.status !== 'borrowing'} onClick={() => onReturn(item, { returnCondition: 'lost' })} type="button">Mất</button>
+                      <button className="btn btn-success" disabled={rowProcessing || item.status !== 'pending'} onClick={() => onApprove(item)} type="button">
+                        {isProcessing(item, 'approve') ? 'Đang xử lý...' : 'Duyệt'}
+                      </button>
+                      <button className="btn btn-danger" disabled={rowProcessing || item.status !== 'pending'} onClick={() => onReject(item)} type="button">
+                        {isProcessing(item, 'reject') ? 'Đang xử lý...' : 'Từ chối'}
+                      </button>
+                      <button className="btn btn-primary" disabled={rowProcessing || item.status !== 'borrowing'} onClick={() => onReturn(item)} type="button">
+                        {isProcessing(item, 'return') ? 'Đang xử lý...' : 'Đã trả'}
+                      </button>
+                      <button className="btn btn-warning" disabled={rowProcessing || item.status !== 'borrowing'} onClick={() => onReturn(item, { returnCondition: 'damaged' })} type="button">
+                        {isProcessing(item, 'damaged') ? 'Đang xử lý...' : 'Hỏng'}
+                      </button>
+                      <button className="btn btn-dark" disabled={rowProcessing || item.status !== 'borrowing'} onClick={() => onReturn(item, { returnCondition: 'lost' })} type="button">
+                        {isProcessing(item, 'lost') ? 'Đang xử lý...' : 'Mất'}
+                      </button>
                     </div>
                   </td>
                 </tr>

@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import { bookService } from '../../services/bookService';
 import { borrowingService } from '../../services/borrowingService';
 import { categoryService } from '../../services/categoryService';
-import { categoryName, getBookAvailability, isBookBorrowable } from '../../utils/library';
+import { calculateAvailableCopies, categoryName, getBookAvailability, isBookBorrowable } from '../../utils/library';
 
 export function BookDetailPage() {
   const { bookId } = useParams();
@@ -16,6 +16,7 @@ export function BookDetailPage() {
   const [categories, setCategories] = useState([]);
   const [borrowings, setBorrowings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export function BookDetailPage() {
         const [bookData, categoryData, borrowingData] = await Promise.all([
           bookService.getById(bookId),
           categoryService.getAll(),
-          isAuthenticated ? borrowingService.getAll() : Promise.resolve([]),
+          borrowingService.getAll(),
         ]);
         setBook(bookData);
         setCategories(categoryData);
@@ -37,9 +38,10 @@ export function BookDetailPage() {
       }
     }
     loadData();
-  }, [bookId, isAuthenticated]);
+  }, [bookId]);
 
   const requestBorrow = async () => {
+    if (isRequesting) return;
     if (!isAuthenticated) {
       showToast('Bạn cần đăng nhập Reader để tạo phiếu mượn.', 'danger');
       return;
@@ -49,32 +51,35 @@ export function BookDetailPage() {
       return;
     }
     try {
+      setIsRequesting(true);
       await borrowingService.createRequest({ user, book });
       showToast('Đã tạo phiếu chờ duyệt. Admin sẽ xử lý tại quầy.', 'success');
       const borrowingData = await borrowingService.getAll();
       setBorrowings(borrowingData);
     } catch (err) {
       showToast(err.message, 'danger');
+    } finally {
+      setIsRequesting(false);
     }
   };
 
   if (loading) return <LoadingState />;
-  if (!book) return <EmptyState title="Không tìm thấy sách" description="Sách này không tồn tại trong dữ liệu hiện tại." />;
+  if (!book || book.status !== 'available') return <EmptyState title="Không tìm thấy sách" description="Sách này không tồn tại trong dữ liệu hiện tại." />;
 
   const activeBorrowing = user
     ? borrowings.find((item) => String(item.userId) === String(user.id) && String(item.bookId) === String(book.id) && ['pending', 'borrowing'].includes(item.status))
     : null;
-  const availability = getBookAvailability(book);
-  const isBorrowDisabled = !isBookBorrowable(book) || Boolean(activeBorrowing) || (isAuthenticated && user?.role !== 'reader');
+  const availability = getBookAvailability(book, borrowings);
+  const remainingCopies = calculateAvailableCopies(book, borrowings);
+  const shouldShowBorrowButton = !isAuthenticated || user?.role === 'reader';
+  const isBorrowDisabled = isRequesting || !isBookBorrowable(book, borrowings) || Boolean(activeBorrowing);
   const borrowLabel = activeBorrowing?.status === 'pending'
     ? 'Đã đăng ký mượn'
     : activeBorrowing?.status === 'borrowing'
       ? 'Đang mượn sách này'
       : !isAuthenticated
         ? 'Đăng nhập để mượn'
-        : user?.role !== 'reader'
-          ? 'Chỉ Reader được mượn'
-          : availability.borrowLabel;
+        : availability.borrowLabel;
 
   return (
     <section className="surface overflow-hidden">
@@ -93,14 +98,15 @@ export function BookDetailPage() {
           {error && <ErrorState message={error} />}
           <p className="my-4">{book.description}</p>
           <div className="row g-3 mb-4">
-            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Tổng bản</div><div className="h4 mb-0">{book.totalCopies}</div></div></div>
-            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Có thể mượn</div><div className="h4 mb-0">{book.availableCopies}</div></div></div>
-            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Hỏng/mất</div><div className="h4 mb-0">{(book.damagedCopies || 0) + (book.lostCopies || 0)}</div></div></div>
-            <div className="col-sm-3"><div className="metric"><div className="text-muted-2 small">Kệ</div><div className="h4 mb-0">{book.shelfLocation}</div></div></div>
+            <div className="col-sm-4"><div className="metric"><div className="text-muted-2 small">Tổng bản</div><div className="h4 mb-0">{book.totalCopies}</div></div></div>
+            <div className="col-sm-4"><div className="metric"><div className="text-muted-2 small">Có thể mượn</div><div className="h4 mb-0">{remainingCopies}</div></div></div>
+            <div className="col-sm-4"><div className="metric"><div className="text-muted-2 small">Hỏng/mất</div><div className="h4 mb-0">{(book.damagedCopies || 0) + (book.lostCopies || 0)}</div></div></div>
           </div>
-          <button className="btn btn-primary" type="button" disabled={isBorrowDisabled} onClick={requestBorrow}>
-            {borrowLabel}
-          </button>
+          {shouldShowBorrowButton && (
+            <button className="btn btn-primary" type="button" disabled={isBorrowDisabled} onClick={requestBorrow}>
+              {isRequesting ? 'Đang xử lý...' : borrowLabel}
+            </button>
+          )}
         </div>
       </div>
     </section>

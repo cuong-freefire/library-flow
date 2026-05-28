@@ -18,6 +18,7 @@ export function BookListPage() {
   const [categories, setCategories] = useState([]);
   const [borrowings, setBorrowings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [requestingBookId, setRequestingBookId] = useState(null);
   const [filters, setFilters] = useState({ q: '', categoryId: 'all', availability: 'all' });
 
   const loadData = useCallback(async () => {
@@ -26,7 +27,7 @@ export function BookListPage() {
       const [bookData, categoryData, borrowingData] = await Promise.all([
         bookService.getAll(),
         categoryService.getAll(),
-        isAuthenticated ? borrowingService.getAll() : Promise.resolve([]),
+        borrowingService.getAll(),
       ]);
       setBooks(bookData);
       setCategories(categoryData);
@@ -36,7 +37,7 @@ export function BookListPage() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, showToast]);
+  }, [showToast]);
 
   useEffect(() => {
     loadData();
@@ -45,20 +46,22 @@ export function BookListPage() {
   const filteredBooks = useMemo(() => {
     const keyword = filters.q.trim().toLowerCase();
     return books.filter((book) => {
+      if (book.status !== 'available') return false;
       const matchesKeyword = !keyword || `${book.title} ${book.author}`.toLowerCase().includes(keyword);
       const matchesCategory = filters.categoryId === 'all' || String(book.categoryId) === filters.categoryId;
       const matchesAvailability =
         filters.availability === 'all' ||
         (filters.availability === 'available'
-          ? isBookBorrowable(book)
+          ? isBookBorrowable(book, borrowings)
           : filters.availability === 'outOfStock'
-            ? book?.status === 'available' && Number(book?.availableCopies) <= 0
-            : book?.status !== 'available');
+            ? !isBookBorrowable(book, borrowings)
+            : true);
       return matchesKeyword && matchesCategory && matchesAvailability;
     });
-  }, [books, filters]);
+  }, [books, borrowings, filters]);
 
   const requestBorrow = async (book) => {
+    if (requestingBookId) return;
     if (!isAuthenticated) {
       showToast('Bạn cần đăng nhập Reader để tạo phiếu mượn.', 'danger');
       return;
@@ -68,12 +71,15 @@ export function BookListPage() {
       return;
     }
     try {
+      setRequestingBookId(book.id);
       await borrowingService.createRequest({ user, book });
       showToast(`Đã tạo phiếu chờ duyệt cho sách "${book.title}".`, 'success');
       const borrowingData = await borrowingService.getAll();
       setBorrowings(borrowingData);
     } catch (err) {
       showToast(err.message, 'danger');
+    } finally {
+      setRequestingBookId(null);
     }
   };
 
@@ -129,7 +135,6 @@ export function BookListPage() {
               <option value="all">Tất cả</option>
               <option value="available">Có thể mượn</option>
               <option value="outOfStock">Hết bản</option>
-              <option value="unavailable">Không mượn được</option>
             </select>
           </div>
         </div>
@@ -142,17 +147,17 @@ export function BookListPage() {
           <div className="row g-4">
             {bookPagination.pageItems.map((book) => {
               const activeStatus = activeBorrowingByBook[book.id];
-              const availability = getBookAvailability(book);
-              const isBorrowDisabled = !isBookBorrowable(book) || Boolean(activeStatus) || (isAuthenticated && user?.role !== 'reader');
+              const availability = getBookAvailability(book, borrowings);
+              const isCurrentRequesting = requestingBookId === book.id;
+              const shouldShowBorrowButton = !isAuthenticated || user?.role === 'reader';
+              const isBorrowDisabled = isCurrentRequesting || !isBookBorrowable(book, borrowings) || Boolean(activeStatus);
               const borrowLabel = activeStatus === 'pending'
                 ? 'Đã đăng ký'
                 : activeStatus === 'borrowing'
                   ? 'Đang mượn'
                   : !isAuthenticated
                     ? 'Đăng nhập để mượn'
-                    : user?.role !== 'reader'
-                      ? 'Chỉ Reader mượn'
-                      : availability.borrowLabel;
+                    : availability.borrowLabel;
               return (
                 <div className="col-md-6 col-xl-4" key={book.id}>
                   <article className="surface h-100 overflow-hidden">
@@ -168,9 +173,11 @@ export function BookListPage() {
                       <p className="text-muted-2 mb-3">{book.author}</p>
                       <div className="d-flex gap-2">
                         <Link className="btn btn-outline-secondary btn-sm" to={`/books/${book.id}`}>Chi tiết</Link>
-                        <button className="btn btn-primary btn-sm" type="button" disabled={isBorrowDisabled} onClick={() => requestBorrow(book)}>
-                          {borrowLabel}
-                        </button>
+                        {shouldShowBorrowButton && (
+                          <button className="btn btn-primary btn-sm" type="button" disabled={isBorrowDisabled} onClick={() => requestBorrow(book)}>
+                            {isCurrentRequesting ? 'Đang xử lý...' : borrowLabel}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </article>

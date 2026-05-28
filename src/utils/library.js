@@ -22,15 +22,34 @@ export const bookStatusBadge = {
   unavailable: 'text-bg-secondary',
 };
 
+export function getBorrowedCopies(borrowings = [], bookId) {
+  return borrowings.filter((item) => String(item.bookId) === String(bookId) && item.status === 'borrowing').length;
+}
+
+export function getPendingCopies(borrowings = [], bookId) {
+  return borrowings.filter((item) => String(item.bookId) === String(bookId) && item.status === 'pending').length;
+}
+
+export function calculateAvailableCopies(book, borrowings = []) {
+  const borrowedCopies = Array.isArray(borrowings) ? getBorrowedCopies(borrowings, book?.id) : Number(borrowings || 0);
+  return Math.max(
+    0,
+    Number(book?.totalCopies || 0) -
+      borrowedCopies -
+      Number(book?.damagedCopies || 0) -
+      Number(book?.lostCopies || 0)
+  );
+}
+
 export function categoryName(categories, categoryId) {
   return categories.find((category) => String(category.id) === String(categoryId))?.name || 'Chưa phân loại';
 }
 
-export function isBookBorrowable(book) {
-  return book?.status === 'available' && Number(book?.availableCopies) > 0;
+export function isBookBorrowable(book, borrowings = []) {
+  return book?.status === 'available' && calculateAvailableCopies(book, borrowings) > 0;
 }
 
-export function getBookAvailability(book) {
+export function getBookAvailability(book, borrowings = []) {
   if (book?.status !== 'available') {
     return {
       badgeClass: 'text-bg-secondary',
@@ -39,7 +58,9 @@ export function getBookAvailability(book) {
     };
   }
 
-  if (Number(book?.availableCopies) <= 0) {
+  const remainingCopies = calculateAvailableCopies(book, borrowings);
+
+  if (remainingCopies <= 0) {
     return {
       badgeClass: 'text-bg-secondary',
       label: 'Hết sách',
@@ -49,7 +70,7 @@ export function getBookAvailability(book) {
 
   return {
     badgeClass: 'text-bg-success',
-    label: `Còn ${book.availableCopies}`,
+    label: `Còn ${remainingCopies}`,
     borrowLabel: 'Đăng ký mượn',
   };
 }

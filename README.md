@@ -5,7 +5,7 @@ Library Flow là ứng dụng React quản lý mượn trả sách với hai vai
 - Reader: tra cứu sách, tạo phiếu mượn, xem lịch sử mượn trả.
 - Admin: quản lý sách, thể loại, reader và xử lý phiếu mượn trả.
 
-Backend trong môi trường học tập được mô phỏng bằng `json-server-auth` và dữ liệu nằm trong `db.json`.
+Backend trong môi trường học tập được mô phỏng bằng `json-server`; dữ liệu nằm trong `db.json`.
 
 ## Yêu Cầu
 
@@ -42,6 +42,8 @@ REACT_APP_API_BASE_URL=http://localhost:5000
 - Admin: `admin@library.com` / `Admin123`
 - Reader: `reader@library.com` / `Reader123`
 
+Mật khẩu trong `db.json` được lưu dạng plain text để phù hợp scope demo dùng `json-server`.
+
 ## Scripts
 
 ```bash
@@ -54,7 +56,7 @@ Chạy frontend React.
 npm run api
 ```
 
-Chạy API mock bằng `json-server-auth`.
+Chạy API mock bằng `json-server`.
 
 ```bash
 npm run dev
@@ -72,7 +74,7 @@ Build production vào thư mục `build`.
 
 ```text
 src/
-  api/                 Cấu hình axios và interceptor token
+  api/                 Cấu hình axios
   components/          Component dùng lại nhiều nơi
   context/             AuthContext, ToastContext
   hooks/               Hook dùng chung
@@ -89,17 +91,9 @@ src/
   utils/               Helper định dạng, label, rule nhỏ
 ```
 
-## Luồng Chính
+## Ghi Chú Scope
 
-1. `src/App.js` định nghĩa route và layout.
-2. `AuthProvider` giữ thông tin đăng nhập, token nằm trong `localStorage`.
-3. `services/*` gọi API qua `src/api/axios.js`.
-4. Page lấy dữ liệu qua service hoặc hook feature.
-5. Component con chỉ render form, filter, table hoặc trạng thái UI.
-
-## Ghi Chú Bảo Trì
-
-- Giữ page ở vai trò điều phối, không nhồi toàn bộ form/filter/table vào cùng một file.
-- Với màn hình phức tạp, tạo thư mục feature con trong `pages/<domain>/`.
-- Logic gọi API đặt trong `services`, logic điều phối state của màn hình đặt trong custom hook.
-- Label/status dùng nhiều nơi nên gom vào `utils` hoặc constants thay vì viết lặp trong JSX.
+- Auth là fake auth ở frontend: login đọc `/users`, register ghi `/users`.
+- Role guard chỉ bảo vệ route giao diện, không phải phân quyền backend production.
+- Số sách có thể mượn không lưu trong `db.json`; frontend tính từ `totalCopies`, phiếu `borrowing`, `damagedCopies` và `lostCopies`.
+- Sách bị ẩn sẽ không hiển thị trong danh mục Reader.

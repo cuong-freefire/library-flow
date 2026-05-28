@@ -9,7 +9,7 @@ export function HomePage() {
     <>
       <section className="row align-items-center g-4 mb-5">
         <div className="col-lg-7">
-          <div className="badge badge-soft mb-3">React + json-server-auth</div>
+          <div className="badge badge-soft mb-3">React + json-server</div>
           <h1 className="display-5 fw-bold mb-3">Hệ thống quản lý thư viện cho Reader và Admin</h1>
           <p className="lead text-muted-2 mb-4">
             Tra cứu sách, tạo phiếu mượn online, duyệt mượn trả và theo dõi tình trạng quá hạn trong một giao diện rõ ràng.
@@ -44,14 +44,14 @@ export function HomePage() {
           <div className="surface p-4 h-100">
             <ClipboardList className="text-warning mb-3" />
             <h2 className="h5">Luồng mượn trả</h2>
-            <p className="text-muted-2 mb-0">Reader tạo pending, Admin duyệt mới trừ số lượng và trả sách sẽ lưu lịch sử.</p>
+            <p className="text-muted-2 mb-0">Reader tạo pending, Admin duyệt phiếu và trả sách sẽ lưu lịch sử mượn trả.</p>
           </div>
         </div>
         <div className="col-md-4">
           <div className="surface p-4 h-100">
             <ShieldCheck className="text-primary mb-3" />
             <h2 className="h5">Phân quyền</h2>
-            <p className="text-muted-2 mb-0">Route guard tách Reader và Admin theo user.role từ json-server-auth.</p>
+            <p className="text-muted-2 mb-0">Route guard tách Reader và Admin theo user.role từ dữ liệu json-server.</p>
           </div>
         </div>
       </section>

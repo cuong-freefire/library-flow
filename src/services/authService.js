@@ -1,17 +1,18 @@
 import axiosApi from '../api/axios';
 
-function normalizeAuthError(error, fallback, mode) {
-  if (error.response?.status === 400) {
-    if (mode === 'login') {
-      return new Error('Email hoặc mật khẩu không đúng.');
-    }
-    return new Error('Email đã tồn tại hoặc dữ liệu không hợp lệ.');
-  }
-  if (error.response?.status === 401) {
-    return new Error('Phiên đăng nhập đã hết hạn hoặc bạn không có quyền truy cập.');
-  }
+function sanitizeUser(user) {
+  if (!user) return null;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function normalizeAuthError(error, fallback) {
   if (error.request) {
-    return new Error('Không thể kết nối API. Hãy bật json-server-auth.');
+    return new Error('Không thể kết nối API. Hãy bật json-server.');
   }
   return new Error(fallback);
 }
@@ -19,20 +20,48 @@ function normalizeAuthError(error, fallback, mode) {
 export const authService = {
   async login(credentials) {
     try {
-      const response = await axiosApi.post('/login', credentials);
-      return response.data;
+      const email = normalizeEmail(credentials.email);
+      const response = await axiosApi.get('/users');
+      const user = response.data.find((item) => normalizeEmail(item.email) === email);
+
+      if (!user || user.password !== credentials.password) {
+        throw new Error('Email hoặc mật khẩu không đúng.');
+      }
+      if (user.status === 'locked') {
+        throw new Error('Tài khoản đang bị khóa.');
+      }
+
+      return { user: sanitizeUser(user) };
     } catch (error) {
-      throw normalizeAuthError(error, 'Đăng nhập thất bại.', 'login');
+      if (['Email hoặc mật khẩu không đúng.', 'Tài khoản đang bị khóa.'].includes(error.message)) {
+        throw error;
+      }
+      throw normalizeAuthError(error, 'Đăng nhập thất bại.');
     }
   },
 
   async register(userData) {
     try {
       const { confirmPassword, ...payload } = userData;
-      const response = await axiosApi.post('/register', payload);
-      return response.data;
+      const email = normalizeEmail(payload.email);
+      const existingResponse = await axiosApi.get('/users');
+
+      if (existingResponse.data.some((user) => normalizeEmail(user.email) === email)) {
+        throw new Error('Email đã tồn tại.');
+      }
+
+      const response = await axiosApi.post('/users', {
+        ...payload,
+        name: payload.name.trim(),
+        email,
+        phone: payload.phone?.trim() || '',
+      });
+      return { user: sanitizeUser(response.data) };
     } catch (error) {
-      throw normalizeAuthError(error, 'Đăng ký thất bại.', 'register');
+      if (error.message === 'Email đã tồn tại.') {
+        throw error;
+      }
+      throw normalizeAuthError(error, 'Đăng ký thất bại.');
     }
   },
 };

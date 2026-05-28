@@ -16,7 +16,11 @@ export function AdminDashboardPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [books, users, borrowings] = await Promise.all([bookService.getAll(), userService.getAll(), borrowingService.getAll()]);
+        const [books, users, borrowings] = await Promise.all([
+          bookService.getAll(),
+          userService.getAll(),
+          borrowingService.getAll(),
+        ]);
         setData({ books, users, borrowings });
       } catch (err) {
         setError('Không thể tải dashboard.');

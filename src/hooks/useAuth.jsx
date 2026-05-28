@@ -5,6 +5,12 @@ import { userService } from '../services/userService';
 
 const USER_KEY = 'libraryFlowUser';
 
+function sanitizeUser(user) {
+  if (!user) return null;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 export function useAuth() {
   const navigate = useNavigate();
   const [user, setUser] = useState(() => {
@@ -18,9 +24,10 @@ export function useAuth() {
   }, []);
 
   const persistUser = (nextUser) => {
-    setUser(nextUser);
-    if (nextUser) {
-      localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+    const safeUser = sanitizeUser(nextUser);
+    setUser(safeUser);
+    if (safeUser) {
+      localStorage.setItem(USER_KEY, JSON.stringify(safeUser));
     } else {
       localStorage.removeItem(USER_KEY);
     }
@@ -28,7 +35,6 @@ export function useAuth() {
 
   const login = async (credentials) => {
     const data = await authService.login(credentials);
-    localStorage.setItem('accessToken', data.accessToken);
     persistUser(data.user);
     navigate(data.user.role === 'admin' ? '/admin' : '/books');
   };
@@ -40,13 +46,11 @@ export function useAuth() {
       status: 'active',
       avatar: '',
     });
-    localStorage.setItem('accessToken', data.accessToken);
     persistUser(data.user);
     navigate('/books');
   };
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
     persistUser(null);
     navigate('/login');
   };
@@ -55,12 +59,12 @@ export function useAuth() {
     if (!user) return null;
     const updatedUser = await userService.update(user.id, payload);
     persistUser(updatedUser);
-    return updatedUser;
+    return sanitizeUser(updatedUser);
   };
 
   return {
     user,
-    isAuthenticated: Boolean(user && localStorage.getItem('accessToken')),
+    isAuthenticated: Boolean(user),
     isAuthReady,
     login,
     register,

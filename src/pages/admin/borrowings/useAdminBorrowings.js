@@ -33,6 +33,7 @@ export function useAdminBorrowings() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [loading, setLoading] = useState(true);
+  const [processingAction, setProcessingAction] = useState(null);
   const [error, setError] = useState('');
 
   // Cần tải cả phiếu, sách và user để table có đủ dữ liệu hiển thị tên và trạng thái liên quan.
@@ -105,27 +106,41 @@ export function useAdminBorrowings() {
   });
 
   // Bọc các thao tác duyệt/trả/từ chối để xử lý toast, lỗi và reload dữ liệu thống nhất.
-  const runAction = async (action, successMessage) => {
+  const runAction = async (borrowing, actionName, action, successMessage) => {
+    if (processingAction) return;
+
+    const actionKey = `${actionName}:${borrowing.id}`;
     setError('');
+    setProcessingAction(actionKey);
     try {
       await action();
       showToast(successMessage, 'success');
       await loadData();
     } catch (err) {
       showToast(err.message || 'Thao tác thất bại.', 'danger');
+    } finally {
+      setProcessingAction(null);
     }
   };
 
   // Các action bên dưới chỉ nhận borrowing từ table, hook tự tìm book liên quan trước khi gọi service.
   const approve = (borrowing) => {
+    const reader = getUser(borrowing.userId);
     runAction(
-      () => borrowingService.approve(borrowing, getBook(borrowing.bookId)),
-      'Đã duyệt phiếu và trừ số lượng sách.'
+      borrowing,
+      'approve',
+      () => {
+        if (reader?.status === 'locked') {
+          throw new Error('Không thể duyệt phiếu của Reader đã bị khóa.');
+        }
+        return borrowingService.approve(borrowing, getBook(borrowing.bookId));
+      },
+      'Đã duyệt phiếu mượn.'
     );
   };
 
   const reject = (borrowing) => {
-    runAction(() => borrowingService.reject(borrowing.id), 'Đã từ chối phiếu.');
+    runAction(borrowing, 'reject', () => borrowingService.reject(borrowing.id), 'Đã từ chối phiếu.');
   };
 
   const returnBook = (borrowing, payload) => {
@@ -136,6 +151,8 @@ export function useAdminBorrowings() {
         : 'Đã xác nhận trả sách.';
 
     runAction(
+      borrowing,
+      payload?.returnCondition || 'return',
       () => borrowingService.returnBook(borrowing, getBook(borrowing.bookId), payload),
       message
     );
@@ -153,6 +170,7 @@ export function useAdminBorrowings() {
     getUser,
     loading,
     pagination,
+    processingAction,
     query,
     setDateField,
     setDateFrom,

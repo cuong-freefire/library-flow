@@ -4,6 +4,7 @@ import { useToast } from '../../../context/ToastContext';
 import { bookService } from '../../../services/bookService';
 import { borrowingService } from '../../../services/borrowingService';
 import { categoryService } from '../../../services/categoryService';
+import { calculateAvailableCopies, getBorrowedCopies, getPendingCopies } from '../../../utils/library';
 
 export const emptyBook = {
   title: '',
@@ -13,28 +14,32 @@ export const emptyBook = {
   totalCopies: 1,
   damagedCopies: 0,
   lostCopies: 0,
-  shelfLocation: '',
   coverImage: '',
   status: 'available',
 };
 
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
 export function useAdminBooks() {
   const { showToast } = useToast();
 
-  // Gom toàn bộ state của màn quản lý sách vào hook để page chỉ còn nhiệm vụ render.
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [borrowings, setBorrowings] = useState([]);
   const [form, setForm] = useState(emptyBook);
   const [editingId, setEditingId] = useState(null);
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState({ categoryId: 'all', status: 'all', stock: 'all', shelf: 'all' });
+  const [filters, setFilters] = useState({ categoryId: 'all', status: 'all', stock: 'all' });
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [processingBookId, setProcessingBookId] = useState(null);
   const [error, setError] = useState('');
 
-  // Tải đồng thời sách, thể loại và phiếu mượn vì màn này cần cả ba nguồn dữ liệu.
   const loadData = async () => {
     setLoading(true);
+    setError('');
     try {
       const [bookData, categoryData, borrowingData] = await Promise.all([
         bookService.getAll(),
@@ -55,57 +60,39 @@ export function useAdminBooks() {
     loadData();
   }, []);
 
-  // Tạo map đếm theo bookId để khi render table không phải lọc lại toàn bộ borrowings cho từng dòng.
-  const borrowedCountByBook = useMemo(() => {
-    return borrowings.reduce((acc, item) => {
-      if (item.status === 'borrowing') {
-        acc[item.bookId] = (acc[item.bookId] || 0) + 1;
-      }
-      return acc;
-    }, {});
-  }, [borrowings]);
+  const getBorrowedCount = (bookId) => getBorrowedCopies(borrowings, bookId);
+  const getPendingCount = (bookId) => getPendingCopies(borrowings, bookId);
+  const getAvailableCount = (book) => calculateAvailableCopies(book, borrowings);
 
-  const pendingCountByBook = useMemo(() => {
-    return borrowings.reduce((acc, item) => {
-      if (item.status === 'pending') {
-        acc[item.bookId] = (acc[item.bookId] || 0) + 1;
-      }
-      return acc;
-    }, {});
-  }, [borrowings]);
-
-  const getBorrowedCount = (bookId) => borrowedCountByBook[bookId] || 0;
-  const getPendingCount = (bookId) => pendingCountByBook[bookId] || 0;
-
-  // Danh sách kệ được suy ra từ dữ liệu sách hiện có, tránh hard-code option lọc.
-  const shelfOptions = useMemo(() => {
-    return Array.from(new Set(books.map((book) => book.shelfLocation).filter(Boolean))).sort();
-  }, [books]);
-
-  // Toàn bộ điều kiện search/filter nằm cùng một chỗ để dễ sửa khi thêm bộ lọc mới.
   const filteredBooks = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     return books
       .filter((book) => !keyword || `${book.title} ${book.author}`.toLowerCase().includes(keyword))
       .filter((book) => filters.categoryId === 'all' || String(book.categoryId) === filters.categoryId)
       .filter((book) => filters.status === 'all' || book.status === filters.status)
-      .filter((book) => filters.shelf === 'all' || book.shelfLocation === filters.shelf)
       .filter((book) => {
+        const remainingCopies = calculateAvailableCopies(book, borrowings);
         if (filters.stock === 'all') return true;
-        if (filters.stock === 'borrowable') return book.status === 'available' && Number(book.availableCopies) > 0;
-        if (filters.stock === 'outOfStock') return book.status === 'available' && Number(book.availableCopies) <= 0;
-        if (filters.stock === 'hasPending') return (pendingCountByBook[book.id] || 0) > 0;
-        if (filters.stock === 'hasBorrowing') return (borrowedCountByBook[book.id] || 0) > 0;
+        if (filters.stock === 'borrowable') return book.status === 'available' && remainingCopies > 0;
+        if (filters.stock === 'outOfStock') return book.status === 'available' && remainingCopies <= 0;
+        if (filters.stock === 'hasPending') return getPendingCopies(borrowings, book.id) > 0;
+        if (filters.stock === 'hasBorrowing') return getBorrowedCopies(borrowings, book.id) > 0;
         if (filters.stock === 'hasDamagedOrLost') return Number(book.damagedCopies || 0) + Number(book.lostCopies || 0) > 0;
         return true;
-      });
-  }, [books, filters, query, borrowedCountByBook, pendingCountByBook]);
+      })
+      .sort((left, right) => left.title.localeCompare(right.title));
+  }, [books, borrowings, filters, query]);
 
   const hasActiveBorrowing = (bookId) => borrowings.some(
     (item) => String(item.bookId) === String(bookId) && ['pending', 'borrowing'].includes(item.status)
   );
 
-  // resetKey giúp pagination quay về trang đầu khi người dùng đổi filter hoặc từ khóa.
+  const hasDuplicateBook = (payload) => books.some((book) => (
+    String(book.id) !== String(editingId) &&
+    normalizeText(book.title) === normalizeText(payload.title) &&
+    normalizeText(book.author) === normalizeText(payload.author)
+  ));
+
   const pagination = usePagination(filteredBooks, {
     pageSize: 8,
     resetKey: `${query}|${JSON.stringify(filters)}`,
@@ -116,80 +103,99 @@ export function useAdminBooks() {
     setEditingId(null);
   };
 
-  // Chuẩn hóa payload trước khi gửi API, đặc biệt là số lượng và categoryId từ form string.
-  const submitBook = async (event) => {
-    event.preventDefault();
+  const submitBook = async (values) => {
+    if (isSaving) return;
     setError('');
+
     const borrowedCopies = editingId ? getBorrowedCount(editingId) : 0;
     const payload = {
-      ...form,
-      categoryId: Number(form.categoryId),
-      totalCopies: Number(form.totalCopies),
-      damagedCopies: Number(form.damagedCopies || 0),
-      lostCopies: Number(form.lostCopies || 0),
-      coverImage: form.coverImage || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80',
+      title: values.title.trim(),
+      author: values.author.trim(),
+      categoryId: Number(values.categoryId),
+      description: values.description?.trim() || '',
+      totalCopies: Number(values.totalCopies),
+      damagedCopies: Number(values.damagedCopies || 0),
+      lostCopies: Number(values.lostCopies || 0),
+      coverImage: values.coverImage?.trim() || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80',
+      status: editingId ? (books.find((book) => String(book.id) === String(editingId))?.status || 'available') : 'available',
     };
-    payload.availableCopies = payload.totalCopies - borrowedCopies - payload.damagedCopies - payload.lostCopies;
 
-    // Các rule dưới đây bảo vệ dữ liệu kho sách trước khi create/update.
-    if (!payload.title || !payload.author || !payload.categoryId) {
-      showToast('Vui lòng nhập tên sách, tác giả và thể loại.', 'danger');
+    if (hasDuplicateBook(payload)) {
+      showToast('Sách cùng tên và tác giả đã tồn tại.', 'danger');
       return;
     }
-    if (payload.availableCopies < 0) {
+
+    const remainingCopies = payload.totalCopies - borrowedCopies - payload.damagedCopies - payload.lostCopies;
+    if (remainingCopies < 0) {
       showToast('Tổng số bản không đủ cho số đang mượn, hỏng và mất.', 'danger');
       return;
     }
-    if (editingId && payload.status === 'unavailable' && hasActiveBorrowing(editingId)) {
-      showToast('Không thể ẩn sách đang có phiếu chờ duyệt hoặc đang mượn.', 'danger');
-      return;
-    }
 
-    if (editingId) {
-      await bookService.update(editingId, payload);
-      showToast('Đã cập nhật sách.', 'success');
-    } else {
-      await bookService.create(payload);
-      showToast('Đã thêm sách.', 'success');
+    try {
+      setIsSaving(true);
+      if (editingId) {
+        await bookService.update(editingId, payload);
+        showToast('Đã cập nhật sách.', 'success');
+      } else {
+        await bookService.create(payload);
+        showToast('Đã thêm sách.', 'success');
+      }
+      resetForm();
+      await loadData();
+    } catch (err) {
+      showToast('Không thể lưu sách. Kiểm tra API mock.', 'danger');
+    } finally {
+      setIsSaving(false);
     }
-    resetForm();
-    await loadData();
   };
 
-  // Khi sửa sách, convert categoryId về string để select control hiển thị đúng option.
   const editBook = (book) => {
     setEditingId(book.id);
     setForm({
-      ...book,
+      title: book.title || '',
+      author: book.author || '',
+      categoryId: String(book.categoryId || ''),
+      description: book.description || '',
+      totalCopies: book.totalCopies || 1,
       damagedCopies: book.damagedCopies || 0,
       lostCopies: book.lostCopies || 0,
-      availableCopies: book.availableCopies || 0,
-      categoryId: String(book.categoryId),
+      coverImage: book.coverImage || '',
+      status: book.status || 'available',
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Sách đã có lịch sử mượn trả sẽ được ẩn thay vì xóa để không mất dữ liệu tham chiếu.
   const removeBook = async (book) => {
-    const hasHistory = borrowings.some((item) => String(item.bookId) === String(book.id));
+    if (processingBookId) return;
     if (hasActiveBorrowing(book.id)) {
-      showToast('Không thể xóa/ẩn sách đang có phiếu chờ duyệt hoặc đang mượn.', 'danger');
+      showToast('Không thể ẩn sách đang có phiếu chờ duyệt hoặc đang mượn.', 'danger');
       return;
     }
-    if (hasHistory) {
+
+    try {
+      setProcessingBookId(book.id);
       await bookService.update(book.id, { status: 'unavailable' });
-      showToast('Đã ẩn đầu sách có lịch sử mượn trả.', 'success');
-    } else {
-      await bookService.remove(book.id);
-      showToast('Đã xóa sách.', 'success');
+      showToast('Đã ẩn đầu sách.', 'success');
+      await loadData();
+    } catch (err) {
+      showToast('Không thể ẩn sách.', 'danger');
+    } finally {
+      setProcessingBookId(null);
     }
-    await loadData();
   };
 
   const restoreBook = async (book) => {
-    await bookService.update(book.id, { status: 'available' });
-    showToast('Đã hiện lại đầu sách.', 'success');
-    await loadData();
+    if (processingBookId) return;
+    try {
+      setProcessingBookId(book.id);
+      await bookService.update(book.id, { status: 'available' });
+      showToast('Đã hiện lại đầu sách.', 'success');
+      await loadData();
+    } catch (err) {
+      showToast('Không thể hiện lại sách.', 'danger');
+    } finally {
+      setProcessingBookId(null);
+    }
   };
 
   return {
@@ -200,16 +206,17 @@ export function useAdminBooks() {
     filteredBooks,
     filters,
     form,
+    getAvailableCount,
     getBorrowedCount,
     getPendingCount,
+    isSaving,
     loading,
     pagination,
+    processingBookId,
     query,
     resetForm,
     setFilters,
-    setForm,
     setQuery,
-    shelfOptions,
     submitBook,
     editBook,
     removeBook,

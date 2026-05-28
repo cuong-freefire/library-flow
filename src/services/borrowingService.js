@@ -1,5 +1,6 @@
 import axiosApi from '../api/axios';
 import { addDays, todayIso } from '../utils/date';
+import { calculateAvailableCopies } from '../utils/library';
 
 async function getBorrowedCount(bookId) {
   const response = await axiosApi.get('/borrowings', {
@@ -11,13 +12,14 @@ async function getBorrowedCount(bookId) {
   return response.data.length;
 }
 
-async function recalculateAvailableCopies(book) {
+async function getCurrentUser(userId) {
+  const response = await axiosApi.get(`/users/${userId}`);
+  return response.data;
+}
+
+async function getAvailableCopies(book) {
   const borrowedCopies = await getBorrowedCount(book.id);
-  const availableCopies = Math.max(
-    0,
-    Number(book.totalCopies) - borrowedCopies - Number(book.damagedCopies || 0) - Number(book.lostCopies || 0)
-  );
-  await axiosApi.patch(`/books/${book.id}`, { availableCopies });
+  return calculateAvailableCopies(book, borrowedCopies);
 }
 
 export const borrowingService = {
@@ -27,16 +29,17 @@ export const borrowingService = {
   },
 
   async createRequest({ user, book }) {
-    if (user.status === 'locked') {
+    const currentUser = await getCurrentUser(user.id);
+    if (currentUser.status === 'locked') {
       throw new Error('Tài khoản đang bị khóa nên không thể tạo phiếu mượn mới.');
     }
-    if (Number(book.availableCopies) <= 0 || book.status !== 'available') {
+    if ((await getAvailableCopies(book)) <= 0 || book.status !== 'available') {
       throw new Error('Sách hiện không còn bản khả dụng.');
     }
 
     const existingResponse = await axiosApi.get('/borrowings', {
       params: {
-        userId: user.id,
+        userId: currentUser.id,
         bookId: book.id,
       },
     });
@@ -46,7 +49,7 @@ export const borrowingService = {
     }
 
     const response = await axiosApi.post('/borrowings', {
-      userId: user.id,
+      userId: currentUser.id,
       bookId: book.id,
       borrowDate: null,
       dueDate: null,
@@ -68,10 +71,13 @@ export const borrowingService = {
   },
 
   async approve(borrowing, book) {
+    if (!book) {
+      throw new Error('Sách không tồn tại.');
+    }
     if (borrowing.status !== 'pending') {
       throw new Error('Chỉ có thể duyệt phiếu đang chờ duyệt.');
     }
-    if (Number(book.availableCopies) <= 0 || book.status !== 'available') {
+    if ((await getAvailableCopies(book)) <= 0 || book.status !== 'available') {
       await this.reject(borrowing.id, 'Sách đã hết tại thời điểm duyệt.');
       throw new Error('Sách đã hết, phiếu đã được chuyển sang từ chối.');
     }
@@ -81,27 +87,30 @@ export const borrowingService = {
       borrowDate: todayIso(),
       dueDate: addDays(todayIso(), 14),
     });
-    await recalculateAvailableCopies(book);
     return response.data;
   },
 
   async returnBook(borrowing, book, payload = {}) {
+    if (!book) {
+      throw new Error('Sách không tồn tại.');
+    }
+    const latestResponse = await axiosApi.get(`/borrowings/${borrowing.id}`);
+    if (latestResponse.data.status !== 'borrowing') {
+      throw new Error('Phiếu này đã được xử lý trước đó.');
+    }
     if (borrowing.status !== 'borrowing') {
       throw new Error('Chỉ phiếu đang mượn mới có thể xác nhận trả.');
     }
 
     const returnCondition = payload.returnCondition || 'normal';
-    let bookForRecalculation = book;
     if (returnCondition === 'damaged') {
-      const updatedBook = await axiosApi.patch(`/books/${book.id}`, {
+      await axiosApi.patch(`/books/${book.id}`, {
         damagedCopies: Number(book.damagedCopies || 0) + 1,
       });
-      bookForRecalculation = updatedBook.data;
     } else if (returnCondition === 'lost') {
-      const updatedBook = await axiosApi.patch(`/books/${book.id}`, {
+      await axiosApi.patch(`/books/${book.id}`, {
         lostCopies: Number(book.lostCopies || 0) + 1,
       });
-      bookForRecalculation = updatedBook.data;
     }
 
     const response = await axiosApi.patch(`/borrowings/${borrowing.id}`, {
@@ -110,7 +119,6 @@ export const borrowingService = {
       returnCondition,
       returnNote: payload.returnNote || '',
     });
-    await recalculateAvailableCopies(bookForRecalculation);
     return response.data;
   },
 };

@@ -3,12 +3,14 @@ import { bookStatusBadge, bookStatusLabels, categoryName } from '../../../utils/
 
 export function BookTable({
   categories,
+  getAvailableCount,
   getBorrowedCount,
   getPendingCount,
   onEdit,
   onRemove,
   onRestore,
   pagination,
+  processingBookId,
 }) {
   return (
     <div className="surface">
@@ -19,7 +21,6 @@ export function BookTable({
               <th>Sách</th>
               <th>Thể loại</th>
               <th>Số lượng</th>
-              <th>Kệ</th>
               <th>Trạng thái</th>
               <th className="text-end">Thao tác</th>
             </tr>
@@ -33,22 +34,25 @@ export function BookTable({
                 </td>
                 <td>{categoryName(categories, book.categoryId)}</td>
                 <td>
-                  <div>{book.availableCopies}/{book.totalCopies} có thể mượn</div>
+                  <div>{getAvailableCount(book)}/{book.totalCopies} có thể mượn</div>
                   <div className="text-muted-2 small">Chờ duyệt: {getPendingCount(book.id)} · Đang mượn: {getBorrowedCount(book.id)}</div>
                   <div className="text-muted-2 small">Hỏng: {book.damagedCopies || 0} · Mất: {book.lostCopies || 0}</div>
                 </td>
-                <td>{book.shelfLocation}</td>
                 <td>
                   <span className={`badge ${bookStatusBadge[book.status] || 'text-bg-secondary'}`}>
                     {bookStatusLabels[book.status] || book.status}
                   </span>
                 </td>
                 <td className="text-end">
-                  <button className="btn btn-outline-secondary btn-sm me-2" type="button" onClick={() => onEdit(book)}>Sửa</button>
+                  <button className="btn btn-outline-secondary btn-sm me-2" disabled={processingBookId === book.id} type="button" onClick={() => onEdit(book)}>Sửa</button>
                   {book.status === 'unavailable' ? (
-                    <button className="btn btn-outline-success btn-sm" type="button" onClick={() => onRestore(book)}>Hiện lại</button>
+                    <button className="btn btn-outline-success btn-sm" disabled={processingBookId === book.id} type="button" onClick={() => onRestore(book)}>
+                      {processingBookId === book.id ? 'Đang xử lý...' : 'Hiện lại'}
+                    </button>
                   ) : (
-                    <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => onRemove(book)}>Xóa/ẩn</button>
+                    <button className="btn btn-outline-danger btn-sm" disabled={processingBookId === book.id} type="button" onClick={() => onRemove(book)}>
+                      {processingBookId === book.id ? 'Đang xử lý...' : 'Ẩn'}
+                    </button>
                   )}
                 </td>
               </tr>

@@ -19,6 +19,7 @@ export function AdminBorrowingsPage() {
     getUser,
     loading,
     pagination,
+    processingAction,
     query,
     setDateField,
     setDateFrom,
@@ -58,6 +59,7 @@ export function AdminBorrowingsPage() {
           onReject={reject}
           onReturn={returnBook}
           pagination={pagination}
+          processingAction={processingAction}
           users={users}
         />
       )}

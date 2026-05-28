@@ -6,6 +6,14 @@ import { useToast } from '../../context/ToastContext';
 import { bookService } from '../../services/bookService';
 import { categoryService } from '../../services/categoryService';
 
+function normalizeCategoryName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function formatCategoryName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
 export function AdminCategoriesPage() {
   const { showToast } = useToast();
   const [categories, setCategories] = useState([]);
@@ -13,10 +21,13 @@ export function AdminCategoriesPage() {
   const [name, setName] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
 
   const loadData = async () => {
     setLoading(true);
+    setError('');
     try {
       const [categoryData, bookData] = await Promise.all([categoryService.getAll(), bookService.getAll()]);
       setCategories(categoryData);
@@ -41,27 +52,56 @@ export function AdminCategoriesPage() {
 
   const submit = async (event) => {
     event.preventDefault();
-    if (!name.trim()) return;
-    if (editingId) {
-      await categoryService.update(editingId, { name: name.trim() });
-      showToast('Đã cập nhật thể loại.', 'success');
-    } else {
-      await categoryService.create({ name: name.trim() });
-      showToast('Đã thêm thể loại.', 'success');
+    if (isSaving) return;
+    const formattedName = formatCategoryName(name);
+    const normalizedName = normalizeCategoryName(formattedName);
+    if (!formattedName) return;
+
+    const isDuplicate = categories.some((category) => (
+      String(category.id) !== String(editingId) &&
+      normalizeCategoryName(category.name) === normalizedName
+    ));
+    if (isDuplicate) {
+      showToast('Thể loại này đã tồn tại.', 'danger');
+      return;
     }
-    setName('');
-    setEditingId(null);
-    await loadData();
+
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        await categoryService.update(editingId, { name: formattedName });
+        showToast('Đã cập nhật thể loại.', 'success');
+      } else {
+        await categoryService.create({ name: formattedName });
+        showToast('Đã thêm thể loại.', 'success');
+      }
+      setName('');
+      setEditingId(null);
+      await loadData();
+    } catch (err) {
+      showToast('Không thể lưu thể loại.', 'danger');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const remove = async (category) => {
+    if (deletingId) return;
     if (bookCountByCategory[category.id]) {
       showToast('Không thể xóa thể loại đang được sách sử dụng.', 'danger');
       return;
     }
-    await categoryService.remove(category.id);
-    showToast('Đã xóa thể loại.', 'success');
-    await loadData();
+
+    setDeletingId(category.id);
+    try {
+      await categoryService.remove(category.id);
+      showToast('Đã xóa thể loại.', 'success');
+      await loadData();
+    } catch (err) {
+      showToast('Không thể xóa thể loại.', 'danger');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const categoryPagination = usePagination(categories, {
@@ -79,10 +119,12 @@ export function AdminCategoriesPage() {
         <div className="row g-3 align-items-end">
           <div className="col-md-9">
             <label className="form-label fw-semibold" htmlFor="categoryName">Tên thể loại</label>
-            <input id="categoryName" className="form-control" value={name} onChange={(event) => setName(event.target.value)} />
+            <input id="categoryName" className="form-control" disabled={isSaving} value={name} onChange={(event) => setName(event.target.value)} />
           </div>
           <div className="col-md-3 d-grid">
-            <button className="btn btn-primary" type="submit">{editingId ? 'Cập nhật' : 'Thêm thể loại'}</button>
+            <button className="btn btn-primary" disabled={isSaving} type="submit">
+              {isSaving ? 'Đang lưu...' : editingId ? 'Cập nhật' : 'Thêm thể loại'}
+            </button>
           </div>
         </div>
       </form>
@@ -97,8 +139,10 @@ export function AdminCategoriesPage() {
                     <td className="fw-semibold">{category.name}</td>
                     <td>{bookCountByCategory[category.id] || 0}</td>
                     <td className="text-end">
-                      <button className="btn btn-outline-secondary btn-sm me-2" type="button" onClick={() => { setEditingId(category.id); setName(category.name); }}>Sửa</button>
-                      <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => remove(category)}>Xóa</button>
+                      <button className="btn btn-outline-secondary btn-sm me-2" disabled={isSaving || deletingId === category.id} type="button" onClick={() => { setEditingId(category.id); setName(category.name); }}>Sửa</button>
+                      <button className="btn btn-outline-danger btn-sm" disabled={isSaving || deletingId === category.id} type="button" onClick={() => remove(category)}>
+                        {deletingId === category.id ? 'Đang xử lý...' : 'Xóa'}
+                      </button>
                     </td>
                   </tr>
                 ))}

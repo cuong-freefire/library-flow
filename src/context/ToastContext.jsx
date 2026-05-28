@@ -1,52 +1,29 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ToastContext = createContext(null);
 
-const variantClass = {
-  success: 'text-bg-success',
-  danger: 'text-bg-danger',
-  warning: 'text-bg-warning',
-  info: 'text-bg-info',
+const variantToType = {
+  danger: 'error',
+  error: 'error',
+  info: 'info',
+  success: 'success',
+  warning: 'warning',
 };
 
 export function ToastProvider({ children }) {
-  const [toasts, setToasts] = useState([]);
-
-  const removeToast = useCallback((id) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
-  }, []);
-
   const showToast = useCallback((message, variant = 'info') => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setToasts([{ id, message, variant }]);
+    const type = variantToType[variant] || 'info';
+    toast[type](message);
   }, []);
 
-  const value = useMemo(() => ({ showToast, removeToast }), [showToast, removeToast]);
+  const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="toast-container position-fixed top-0 end-0 p-3 d-flex flex-column gap-2">
-        {toasts.map((toast) => (
-          <div
-            aria-atomic="true"
-            aria-live="assertive"
-            className={`toast show border-0 ${variantClass[toast.variant] || variantClass.info}`}
-            key={toast.id}
-            role="alert"
-          >
-            <div className="d-flex">
-              <div className="toast-body">{toast.message}</div>
-              <button
-                aria-label="Close"
-                className="btn-close btn-close-white me-2 m-auto"
-                onClick={() => removeToast(toast.id)}
-                type="button"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+      <ToastContainer autoClose={2500} newestOnTop position="top-right" />
     </ToastContext.Provider>
   );
 }
